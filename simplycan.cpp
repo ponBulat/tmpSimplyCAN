@@ -3,18 +3,25 @@
 #include <QSerialPortInfo>
 #include <QDebug>
 
-MyCan::MyCan(QObject *parent) : QObject(parent)
+SimplyCAN::SimplyCAN(QObject *parent) : QObject(parent)
   , m_portName{ "/dev/ttyACM0" }
+  , m_bitrate{ 125 }
 {
 
     if( simply_open( m_portName.data() ) ) {
-        qInfo() << "simplyCAN open port" << m_portName;
+        qInfo() << "simplyCAN open port" << m_portName << '\n';
+        printInfo();
+
+        if( simply_initialize_can( m_bitrate ) ) {
+            qInfo() << "initialize can with bitrade " << m_bitrate;
+        } else {
+            qWarning() << "error initialize can with bitrade " << m_bitrate;
+        }
+
+
     } else {
         qWarning() << "simplyCAN dont open port" << m_portName;
-        return;
     }
-
-    qInfo() << " ";
 
 //    can_msg_t can_msg_tx;
 //    uint32_t last_sent = 0;
@@ -23,16 +30,16 @@ MyCan::MyCan(QObject *parent) : QObject(parent)
 
 }
 
-MyCan::~MyCan()
+SimplyCAN::~SimplyCAN()
 {
-    if(  simply_close() ) {
+    if( simply_close() ) {
         qInfo() << "simply close";
     } else {
         qInfo() << "simply dont close";
     }
 }
 
-void MyCan::printInfo()
+void SimplyCAN::printInfo()
 {
     identification_t ident_msg;
 

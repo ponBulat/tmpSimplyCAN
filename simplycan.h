@@ -9,6 +9,7 @@ class SimplyCAN : public QObject
     Q_OBJECT
 
     QByteArray m_portName;
+    uint16_t m_bitrate;
 
 public:
     explicit SimplyCAN(QObject *parent = nullptr);

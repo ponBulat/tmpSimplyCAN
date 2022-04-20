@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 
     SimplyCAN simplyCan;
 
-    simplyCan.printInfo();
+//    simplyCan.printInfo();
 
     a.exit(0);
 
