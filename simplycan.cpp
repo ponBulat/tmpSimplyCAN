@@ -1,4 +1,4 @@
-#include "mycan.h"
+#include "simplycan.h"
 
 #include <QSerialPortInfo>
 #include <QDebug>
@@ -7,7 +7,7 @@ MyCan::MyCan(QObject *parent) : QObject(parent)
   , m_portName{ "/dev/ttyACM0" }
 {
 
-    if( simply_open( m_portName ) ) {
+    if( simply_open( m_portName.data() ) ) {
         qInfo() << "simplyCAN open port" << m_portName;
     } else {
         qWarning() << "simplyCAN dont open port" << m_portName;

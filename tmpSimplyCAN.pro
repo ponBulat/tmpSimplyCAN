@@ -5,10 +5,10 @@ CONFIG += c++latest console
 
 SOURCES += \
         main.cpp \
-        mycan.cpp
+        simplycan.cpp
 
 HEADERS += \
-    mycan.h
+    simplycan.h
 
 # подключим библиотеку simplyCAN от Ixxat
 LIBS += -L$$PWD/3rdparty/Ixxat/lib -lsimplyCAN

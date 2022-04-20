@@ -1,14 +1,14 @@
 #include <QCoreApplication>
 
-#include "mycan.h"
+#include "simplycan.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    MyCan myCan;
+    SimplyCAN simplyCan;
 
-    myCan.printInfo();
+    simplyCan.printInfo();
 
     a.exit(0);
 
