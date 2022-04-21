@@ -1,15 +1,29 @@
 #include "simplycan.h"
 
 #include <QBitArray>
+#include <QSerialPortInfo>
 #include <QDebug>
 
 SimplyCAN::SimplyCAN(QObject *parent) : QObject(parent)
+  #ifdef Q_OS_WIN
+  , m_portName{ "COM3" } // or COM1
+  #elif
   , m_portName{ "/dev/ttyACM0" }
+  #endif
   , m_bitrate{ 125 }
 {
+
+    // посомтрим в дебаге какие вообще порты есть
+//    for( const auto serialPortInfo : QSerialPortInfo::availablePorts() ) {
+//        qDebug() << serialPortInfo.description();
+//        qDebug() << serialPortInfo.portName();
+//        qDebug() << serialPortInfo.manufacturer();
+//        qDebug() << "";
+//    }
+
+
     connect( &m_timer, &QTimer::timeout, this, &SimplyCAN::slotCheckCanMessage );
     m_timer.setInterval(500);
-    m_timer.start();
 
     initCan();
 }
@@ -50,6 +64,7 @@ bool SimplyCAN::initCan()
 
     qInfo() << "simpleCAN start" << '\n';
 
+    m_timer.start();
 
     scanBoards();
 
@@ -75,16 +90,27 @@ void SimplyCAN::printInfo()
 
 void SimplyCAN::scanBoards()
 {
-    can_msg_t can_msg_tx;
+    can_msg_t can_msg_tx_LaserT;
+    can_msg_t can_msg_tx_TableT;
 
     /* generate tx CAN message */
-    can_msg_tx.ident = ( Bulat::Board::LaserT << 6 | Bulat::MSG::STATUSR  );
-    can_msg_tx.dlc = 0;
+    can_msg_tx_LaserT.ident = ( Bulat::Board::LaserT << 6 | Bulat::MSG::STATUSR  );
+    can_msg_tx_LaserT.dlc = 0;
 
-    if( simply_send( &can_msg_tx ) ) {
+    can_msg_tx_TableT.ident = ( Bulat::Board::TableT << 6 | Bulat::MSG::STATUSR  );
+    can_msg_tx_TableT.dlc = 0;
+
+
+    if( simply_send( &can_msg_tx_LaserT) ) {
         qInfo() << "simply send LaserT STATUSR";
     } else {
         qWarning() << "ERROR simply send LaserT STATUSR";
+    }
+
+    if( simply_send( &can_msg_tx_TableT) ) {
+        qInfo() << "simply send TableT STATUSR";
+    } else {
+        qWarning() << "ERROR simply send TableT STATUSR";
     }
 }
 
@@ -101,6 +127,9 @@ void SimplyCAN::slotCheckCanMessage()
         switch ( boardName ) {
         case Bulat::Board::LaserT :
             parseMessageLaserT( can_msg_rx );
+            break;
+        case Bulat::Board::TableT :
+            parseMessageTableT( can_msg_rx );
             break;
         default:
             break;
@@ -128,6 +157,36 @@ void SimplyCAN::parseMessageLaserT( can_msg_t &can_msg_rx )
 
         // ожидаем 4 байт
         const QBitArray status{ QBitArray::fromBits( reinterpret_cast<const char*>( can_msg_rx.payload ), can_msg_rx.dlc * 8 ) };
+
+        qDebug() << "on: " << status.testBit( 0 );
+        qDebug() << "studio: " << status.testBit( 1 );
+
+        break;
+    }
+    case Bulat::MSG::STATUSR : {
+        // ничего не делаем
+        break;
+    }
+    }
+}
+
+void SimplyCAN::parseMessageTableT(can_msg_t &can_msg_rx)
+{
+    qInfo() << "Board: TableT";
+
+    // маска 0x3f это 000 0011 1111
+    // в предположении, что id 11-bit
+    const auto idWithoutName = can_msg_rx.ident & 0x3f;
+
+    switch ( idWithoutName ) {
+    case Bulat::MSG::COMMANDW : {
+        // ничего не делаем
+        break;
+    }
+    case Bulat::MSG::STATUSW : {
+
+        // проверим поля статус и студия в первом байте
+        const QBitArray status{ QBitArray::fromBits( reinterpret_cast<const char*>( can_msg_rx.payload ), 8 ) };
 
         qDebug() << "on: " << status.testBit( 0 );
         qDebug() << "studio: " << status.testBit( 1 );
