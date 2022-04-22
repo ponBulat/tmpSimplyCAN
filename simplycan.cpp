@@ -7,7 +7,7 @@
 SimplyCAN::SimplyCAN(QObject *parent) : QObject(parent)
   #ifdef Q_OS_WIN
   , m_portName{ "COM3" } // or COM1
-  #elif
+  #else
   , m_portName{ "/dev/ttyACM0" }
   #endif
   , m_bitrate{ 125 }
