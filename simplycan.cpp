@@ -12,15 +12,21 @@ SimplyCAN::SimplyCAN(QObject *parent) : QObject(parent)
   #endif
   , m_bitrate{ 125 }
 {
+    qDebug() << "=== AVAILABLE PORTS ======\n";
+
 
     // посомтрим в дебаге какие вообще порты есть
-//    for( const auto serialPortInfo : QSerialPortInfo::availablePorts() ) {
-//        qDebug() << serialPortInfo.description();
-//        qDebug() << serialPortInfo.portName();
-//        qDebug() << serialPortInfo.manufacturer();
-//        qDebug() << "";
-//    }
+    for( const auto &serialPortInfo : QSerialPortInfo::availablePorts() ) {
+        qDebug() << "description: "         << serialPortInfo.description();
+        qDebug() << "portName: "            << serialPortInfo.portName();
+        qDebug() << "manufacturer: "        << serialPortInfo.manufacturer();
+        qDebug() << "productIdentifier: "   << serialPortInfo.productIdentifier();
+        qDebug() << "serialNumber: "        << serialPortInfo.serialNumber();
+        qDebug() << "vendorIdentifier: "    <<  serialPortInfo.vendorIdentifier();
+        qDebug() << "";
+    }
 
+    qDebug() << "========================";
 
     connect( &m_timer, &QTimer::timeout, this, &SimplyCAN::slotCheckCanMessage );
     m_timer.setInterval(500);
@@ -137,7 +143,6 @@ void SimplyCAN::slotCheckCanMessage()
     } else if ( result == -1 ) {
         qWarning() << "error result";
     }
-
 }
 
 void SimplyCAN::parseMessageLaserT( can_msg_t &can_msg_rx )
