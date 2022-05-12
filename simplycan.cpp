@@ -22,7 +22,7 @@ SimplyCAN::SimplyCAN(QObject *parent) : QObject(parent)
         qDebug() << "manufacturer: "        << serialPortInfo.manufacturer();
         qDebug() << "productIdentifier: "   << serialPortInfo.productIdentifier();
         qDebug() << "serialNumber: "        << serialPortInfo.serialNumber();
-        qDebug() << "vendorIdentifier: "    <<  serialPortInfo.vendorIdentifier();
+        qDebug() << "vendorIdentifier: "    << serialPortInfo.vendorIdentifier();
         qDebug() << "";
     }
 
@@ -94,6 +94,84 @@ void SimplyCAN::printInfo()
     }
 }
 
+void SimplyCAN::printStatus()
+{
+    can_sts_t can_sts;
+
+    qDebug() << "\n ======== STATUS ===========";
+
+    if( simply_can_status(&can_sts) ) {
+
+        qInfo() << "number of free elements in CAN message tx fifo: " << can_sts.tx_free;
+
+        /* format and print CAN status */
+
+        if (can_sts.sts & CAN_STATUS_RUNNING) {
+            qInfo() << "--- ";
+        }
+        if (can_sts.sts & CAN_STATUS_RESET) {
+            qInfo() << "RST ";
+        }
+
+        if (can_sts.sts & CAN_STATUS_BUSOFF) {
+            qInfo() << "BUSOFF ";
+        } else {
+            qInfo() << "--- ";
+        }
+
+        if (can_sts.sts & CAN_STATUS_ERRORSTATUS) {
+            qInfo() << "ERR ";
+        } else {
+            qInfo() << "--- ";
+        }
+
+        if (can_sts.sts & CAN_STATUS_RXOVERRUN) {
+            qInfo() << "RxO ";
+        } else {
+            qInfo() << "--- ";
+        }
+
+        if (can_sts.sts & CAN_STATUS_TXOVERRUN) {
+            qInfo() << "TxO ";
+        } else {
+            qInfo() << "--- ";
+        }
+
+        if (can_sts.sts & CAN_STATUS_PENDING) {
+            qInfo() << "PENDING ";
+        } else {
+            qInfo() << "--- ";
+        }
+    } else {
+        qWarning() << "status error";
+    }
+}
+
+void SimplyCAN::printError()
+{
+    qDebug() << "Error: ";
+    switch ( simply_get_last_error() ) {
+        case SIMPLY_S_NO_ERROR :                qInfo() << "No error occurred"; break;
+        case SIMPLY_E_SERIAL_OPEN :             qWarning() << "Unable to open the serial port"; break;
+        case SIMPLY_E_SERIAL_ACCESS :           qWarning() << "Access on serial port denied"; break;
+        case SIMPLY_E_SERIAL_CLOSED :           qWarning() << "Serial communication port is closed "; break;
+        case SIMPLY_E_SERIAL_COMM :             qWarning() << "Serial communication error"; break;
+        case SIMPLY_E_CMND_REQ_UNKNOWN :        qWarning() << "Command unknown on device"; break;
+        case SIMPLY_E_CMND_RESP_TIMEOUT :       qWarning() << "Command response timeout reached"; break;
+        case SIMPLY_E_CMND_RESP_UNEXPECTED :    qWarning() << "Unexpected command response received"; break;
+        case SIMPLY_E_CMND_RESP_ERROR :         qWarning() << "Command response error"; break;
+        case SIMPLY_E_INVALID_PROTOCOL_VERSION : qWarning() << "Invalid simplyCAN protocol version"; break;
+        case SIMPLY_E_INVALID_FW_VERSION :      qWarning() << "Invalid device firmware version"; break;
+        case SIMPLY_E_INVALID_PRODUCT_STRING :  qWarning() << "Invalid simplyCAN product string"; break;
+        case SIMPLY_E_CAN_INVALID_STATE :       qWarning() << "Invalid CAN state"; break;
+        case SIMPLY_E_CAN_INVALID_BAUDRATE :    qWarning() << "Invalid CAN baud-rate"; break;
+        case SIMPLY_E_TX_BUSY :                 qWarning() << "Message could not be sent. TX is busy"; break;
+        case SIMPLY_E_API_BUSY :                qWarning() << " API is busy"; break;
+        default: qWarning() << "unknow error";
+    }
+}
+
+
 void SimplyCAN::scanBoards()
 {
     can_msg_t can_msg_tx_LaserT;
@@ -143,6 +221,9 @@ void SimplyCAN::slotCheckCanMessage()
     } else if ( result == -1 ) {
         qWarning() << "error result";
     }
+
+    printStatus();
+    printError();
 }
 
 void SimplyCAN::parseMessageLaserT( can_msg_t &can_msg_rx )

@@ -36,6 +36,8 @@ public:
     bool initCan();
 
     void printInfo();
+    void printStatus();
+    void printError();
 
     void scanBoards();
 
@@ -47,6 +49,9 @@ private slots:
 private:
     void parseMessageLaserT( can_msg_t &can_msg_rx );
     void parseMessageTableT( can_msg_t &can_msg_rx );
+
+
+
 };
 
 
