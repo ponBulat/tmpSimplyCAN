@@ -47,12 +47,16 @@ SimplyCAN::~SimplyCAN()
 
 bool SimplyCAN::initCan()
 {
+//    printStatus();
+
     if( !simply_open( m_portName.data() ) ) {
         qWarning() << "simplyCAN dont open port" << m_portName;
         return false;
     }
 
     qInfo() << "simplyCAN open port" << m_portName << '\n';
+
+//    printStatus();
 
     printInfo();
 
@@ -63,12 +67,16 @@ bool SimplyCAN::initCan()
 
     qInfo() << "initialize can with bitrade " << m_bitrate;
 
+//    printStatus();
+
     if( !simply_start_can() ) {
         qWarning() << "simplyCAN dont start";
         simply_close();
     }
 
     qInfo() << "simpleCAN start" << '\n';
+
+//    printStatus();
 
     m_timer.start();
 
@@ -107,42 +115,48 @@ void SimplyCAN::printStatus()
         /* format and print CAN status */
 
         if (can_sts.sts & CAN_STATUS_RUNNING) {
-            qInfo() << "--- ";
+            qInfo() << "RUNNING ";
+        } else {
+            qInfo() << "==== NO RUNNING ";
         }
+
         if (can_sts.sts & CAN_STATUS_RESET) {
-            qInfo() << "RST ";
+            qInfo() << "RESET ";
+        } else {
+            qInfo() << "==== NO RESET ";
         }
 
         if (can_sts.sts & CAN_STATUS_BUSOFF) {
             qInfo() << "BUSOFF ";
         } else {
-            qInfo() << "--- ";
+            qInfo() << "====== NO BUSOFF ";
         }
 
         if (can_sts.sts & CAN_STATUS_ERRORSTATUS) {
             qInfo() << "ERR ";
         } else {
-            qInfo() << "--- ";
+            qInfo() << "===== NO ERR";
         }
 
         if (can_sts.sts & CAN_STATUS_RXOVERRUN) {
             qInfo() << "RxO ";
         } else {
-            qInfo() << "--- ";
+            qInfo() << "===== NO RxO  ";
         }
 
         if (can_sts.sts & CAN_STATUS_TXOVERRUN) {
             qInfo() << "TxO ";
         } else {
-            qInfo() << "--- ";
+            qInfo() << "===== NO TxO ";
         }
 
         if (can_sts.sts & CAN_STATUS_PENDING) {
             qInfo() << "PENDING ";
         } else {
-            qInfo() << "--- ";
+            qInfo() << "===== NO PENDING ";
         }
     } else {
+        printError();
         qWarning() << "status error";
     }
 }
@@ -170,7 +184,6 @@ void SimplyCAN::printError()
         default: qWarning() << "unknow error";
     }
 }
-
 
 void SimplyCAN::scanBoards()
 {
@@ -222,8 +235,8 @@ void SimplyCAN::slotCheckCanMessage()
         qWarning() << "error result";
     }
 
-    printStatus();
-    printError();
+//    printStatus();
+//    printError();
 }
 
 void SimplyCAN::parseMessageLaserT( can_msg_t &can_msg_rx )
